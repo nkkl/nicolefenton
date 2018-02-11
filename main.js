@@ -1,16 +1,26 @@
+var nicolefacts = [];
+
 function makeApiCall() {
 	var params = {
 	    // The ID of the spreadsheet to retrieve data from.
 	    spreadsheetId: '1bg2Sz7MwnyUJXCdxJHL-f_wiyY5nJWiMYfyJgRzpzqU',
 
 	    // The A1 notation of the values to retrieve.
-	    range: 'A:A',
+	    range: 'A2:A',
   };
 
 	var request = gapi.client.sheets.spreadsheets.values.get(params);
   	request.then(function(response) {
-    // TODO: Change code below to process the `response` object:
-    	console.log(response.result);
+
+  		// update our list of facts
+    	nicolefacts = response.result.values;
+
+    	// bind onclick functionality
+    	document.getElementById('main').onclick = function() { setFact(nicolefacts); }
+    	
+    	// initialize facts
+    	setFact(nicolefacts);
+
   		}, function(reason) {
     		console.error('error: ' + reason.result.error.message);
   		});
@@ -18,9 +28,7 @@ function makeApiCall() {
 
 function initClient() {
 	var API_KEY = 'AIzaSyBlvzcnpxN_RVtfF-13KtqfmJ4v0MTTok8';
-
 	var CLIENT_ID = '708740926980-g0p1m7uto30ronppolbq6cguf9leg29c.apps.googleusercontent.com';
-
 	var SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
 
 	gapi.client.init({
@@ -49,4 +57,14 @@ function handleSignInClick(event) {
 
 function handleSignOutClick(event) {
 	  gapi.auth2.getAuthInstance().signOut();
+}
+
+function setFact(array) {
+
+	// pick a (pseudo)random fact
+	var index = Math.round( Math.random() * (nicolefacts.length-1) );
+
+	// update the div with the fact
+	var mainDiv = document.getElementById('main');
+	mainDiv.lastElementChild.innerText = array[index];
 }
