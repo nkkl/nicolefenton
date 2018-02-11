@@ -1,6 +1,8 @@
-var nicolefacts = [];
 
 function makeApiCall() {
+	var nicolefacts = [];
+	var factsRef = [];
+
 	var params = {
 	    // The ID of the spreadsheet to retrieve data from.
 	    spreadsheetId: '1bg2Sz7MwnyUJXCdxJHL-f_wiyY5nJWiMYfyJgRzpzqU',
@@ -12,14 +14,20 @@ function makeApiCall() {
 	var request = gapi.client.sheets.spreadsheets.values.get(params);
   	request.then(function(response) {
 
-  		// update our list of facts
-    	nicolefacts = response.result.values;
+  		// create our list of facts
+    	factsRef = response.result.values;
+    	nicolefacts = factsRef.slice(0,factsRef.length);
 
     	// bind onclick functionality
-    	document.getElementById('main').onclick = function() { setFact(nicolefacts); }
+    	document.getElementById('main').onclick = function() { nicolefacts = setFact(nicolefacts,factsRef); }
+    	document.getElementById('main').onkeypress = function() {
+    		if ( event.code == 'space' || 'enter'  ) {
+    			nicolefacts = setFact(nicolefacts,factsRef);
+    		}
+    	}
     	
     	// initialize facts
-    	setFact(nicolefacts);
+    	nicolefacts = setFact(nicolefacts, factsRef);
 
   		}, function(reason) {
     		console.error('error: ' + reason.result.error.message);
@@ -59,12 +67,25 @@ function handleSignOutClick(event) {
 	  gapi.auth2.getAuthInstance().signOut();
 }
 
-function setFact(array) {
-
-	// pick a (pseudo)random fact
-	var index = Math.round( Math.random() * (nicolefacts.length-1) );
-
-	// update the div with the fact
+function setFact(factArray, refArray) {
 	var mainDiv = document.getElementById('main');
-	mainDiv.lastElementChild.innerText = array[index];
+
+	if (factArray.length > 0) {
+		// pick a (pseudo)random fact
+		var index = Math.round( Math.random() * (factArray.length-1) );
+
+		// update the div with the fact
+		mainDiv.lastElementChild.innerText = factArray[index];
+
+		// remove fact and return updated array
+		factArray.splice(index, 1);
+		return factArray;
+	} else {
+		
+		mainDiv.lastElementChild.innerText = 'That\'s all the facts we have. Restart?';
+
+		// reinitialize and return array
+    	factArray = refArray.slice(0,refArray.length);
+    	return factArray;
+	}
 }
